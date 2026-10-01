@@ -35,6 +35,7 @@ namespace UNO
         public static void Ejecutar()
         {
             Console.OutputEncoding = Encoding.UTF8;
+
             try
             {
                 Jugar();
@@ -83,7 +84,6 @@ namespace UNO
                 Console.WriteLine();
                 Console.Write("Número de carta a jugar, 'r' para robar, 's' para salir: ");
                 string entrada = (Console.ReadLine() ?? "").Trim().ToLower();
-
                 if (entrada == "s")
                 {
                     return;
