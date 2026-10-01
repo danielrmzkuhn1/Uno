@@ -31,6 +31,8 @@ CREATE TABLE historial_partida (
         REFERENCES jugadores(id_jugador)
 );
 
+INSERT INTO jugadores VALUES (1, "Daniel"); 
+INSERT INTO jugadores VALUES (2, "Pat"); 
 
 SELECT * FROM jugadores;
 SELECT * FROM partidas;
