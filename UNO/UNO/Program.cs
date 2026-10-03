@@ -11,6 +11,7 @@ namespace UNO
         [STAThread]
         static void Main()
         {
+
             correrConsolaTEST.Ejecutar();
         }
     }

@@ -30,6 +30,9 @@ namespace UNO
     //   2. El juego valida y cambia su estado, y devuelve true o false
     //   3. Se vuelve a leer el estado  -> Dibujar() redibuja todo desde cero
     // =====================================================================
+    
+    
+    
     internal static class correrConsolaTEST
     {
         public static void Ejecutar()
@@ -38,7 +41,7 @@ namespace UNO
 
             try
             {
-                Jugar();
+                Jugar().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -52,10 +55,30 @@ namespace UNO
         }
 
 
-        private static void Jugar()
+        private static async System.Threading.Tasks.Task Jugar()
         {
             // Equivale a lo que haría el menú de tu compañera: recoger los nombres y crear la partida.
             Juego juego = CrearJuego();
+
+            ApiService api = new ApiService();
+
+            int idPartida = await api.CrearPartida();
+
+            Dictionary<int, int> idsJugadores =
+                new Dictionary<int, int>();
+
+            for (int i = 0; i < juego.Jugadores.Count; i++)
+            {
+                int idJugador =
+                    await api.CrearJugador(
+                        juego.Jugadores[i].Nombre
+                    );
+
+                idsJugadores[i] = idJugador;
+            }
+
+            int numeroTurno = 1;
+
 
             // Para que el jugador siguiente no vea la mano del anterior (todos comparten pantalla).
             bool pasarPantalla = true;
@@ -97,6 +120,17 @@ namespace UNO
                     // Equivale a hacer clic en el mazo.
                     // RobarCarta devuelve true si la acción fue aceptada, false si no.
                     ok = juego.RobarCarta(turno);
+                    if (ok)
+                    {
+                        await api.GuardarJugada(
+                            idPartida,
+                            idsJugadores[turno],
+                            numeroTurno,
+                            "RobarCarta",
+                            null,
+                            null
+                        );
+                    }
                 }
                 else if (int.TryParse(entrada, out numero))
                 {
@@ -118,7 +152,45 @@ namespace UNO
                     // Equivale a hacer clic en una carta de la mano.
                     // El juego valida, cambia el estado (mano, carta superior, turno, efectos)
                     // y devuelve true/false. Si es false, el motivo queda en juego.Mensaje.
+                    
+                    Carta cartaJugada = null;
+
+                    if (indice >= 0 &&
+                        indice < jugador.Mano.Count)
+                    {
+                        cartaJugada =
+                            jugador.Mano[indice];
+                    }
+
                     ok = juego.JugarCarta(turno, indice, color);
+
+                    if (ok && cartaJugada != null)
+                    {
+                        string colorGuardado;
+
+                        if (color != ColorCarta.Ninguno)
+                            colorGuardado = color.ToString();
+                        else
+                            colorGuardado = cartaJugada.Color.ToString();
+
+
+                        string valorGuardado;
+
+                        if (cartaJugada.Tipo == TipoCarta.Numero)
+                            valorGuardado = cartaJugada.Numero.ToString();
+                        else
+                            valorGuardado = cartaJugada.Tipo.ToString();
+
+
+                        await api.GuardarJugada(
+                            idPartida,
+                            idsJugadores[turno],
+                            numeroTurno,
+                            "JugarCarta",
+                            colorGuardado,
+                            valorGuardado
+                        );
+                    }
                 }
                 else
                 {
@@ -133,6 +205,7 @@ namespace UNO
                 if (ok)
                 {
                     pasarPantalla = true;
+                    numeroTurno++;
                 }
             }
 
@@ -142,7 +215,21 @@ namespace UNO
             // Ganador es null mientras nadie gana; al terminar trae la posición del jugador.
             if (juego.Ganador.HasValue)
             {
-                Console.WriteLine("Ganó " + juego.Jugadores[juego.Ganador.Value].Nombre);
+                int posicionGanador =
+                    juego.Ganador.Value;
+
+                int idGanador =
+                    idsJugadores[posicionGanador];
+
+                await api.GuardarGanador(
+                    idPartida,
+                    idGanador
+                );
+
+                Console.WriteLine(
+                    "Ganó " +
+                    juego.Jugadores[posicionGanador].Nombre
+                );
             }
         }
 
