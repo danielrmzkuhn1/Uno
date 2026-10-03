@@ -1,9 +1,0 @@
-C:\Users\testi\Documents\Uno\UNO\UNO\bin\Debug\UNO.exe.config
-C:\Users\testi\Documents\Uno\UNO\UNO\bin\Debug\UNO.exe
-C:\Users\testi\Documents\Uno\UNO\UNO\bin\Debug\UNO.pdb
-C:\Users\testi\Documents\Uno\UNO\UNO\obj\Debug\UNO.csproj.AssemblyReference.cache
-C:\Users\testi\Documents\Uno\UNO\UNO\obj\Debug\UNO.Properties.Resources.resources
-C:\Users\testi\Documents\Uno\UNO\UNO\obj\Debug\UNO.csproj.GenerateResource.cache
-C:\Users\testi\Documents\Uno\UNO\UNO\obj\Debug\UNO.csproj.CoreCompileInputs.cache
-C:\Users\testi\Documents\Uno\UNO\UNO\obj\Debug\UNO.exe
-C:\Users\testi\Documents\Uno\UNO\UNO\obj\Debug\UNO.pdb
