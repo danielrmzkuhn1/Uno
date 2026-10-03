@@ -46,7 +46,7 @@
     
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with 
-            : System.Serialization.Formatters.Binary.BinaryFormatter
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
     
     mimetype: application/x-microsoft.net.object.soap.base64
@@ -60,6 +60,7 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -68,9 +69,10 @@
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="name" use="required" type="xsd:string" />
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
@@ -85,9 +87,10 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
               <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
               <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -109,9 +112,172 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Amarillo_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_0.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_9.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_MasDos" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_MasDos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_Reversa" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_Reversa.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Amarillo_Saltar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Amarillo_Saltar.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_0.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_9.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_MasDos" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_MasDos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_Reversa" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_Reversa.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Azul_Saltar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Azul_Saltar.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Comodin" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Comodin.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="MasCuatro" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\MasCuatro.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_0.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_9.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_MasDos" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_MasDos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_Reversa" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_Reversa.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Rojo_Saltar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rojo_Saltar.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_0.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_9.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_MasDos" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_MasDos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_Reversa" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_Reversa.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Verde_Saltar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Verde_Saltar.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

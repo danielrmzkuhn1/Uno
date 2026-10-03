@@ -11,14 +11,39 @@ namespace UNO
         private Juego juego;
         private bool manoVisible = false;
         private string aviso = "";
+        private Control[] controlesJuego;
+        private Point[] posOriginal;
+        private Size tamDiseno;
 
         public Form1()
         {
             InitializeComponent();
+            controlesJuego = new Control[]
+            {
+                lblTurno, lblSentido, lblMazo, lblColorActivo, lblAviso,
+                lblCartaSuperior, lstJugadores, flpMano, btnRobar, btnVerCartas
+            };
+
+            posOriginal = new Point[controlesJuego.Length];
+            for (int i = 0; i < controlesJuego.Length; i++)
+            {
+                posOriginal[i] = controlesJuego[i].Location;
+            }
+            tamDiseno = ClientSize;
+
+            Resize += (s, e) => CentrarJuego();
+            CentrarJuego();
+
             pnlMenu.BringToFront();
 
-            pnlMenu.Resize += (s, e) => CentrarMenu(); 
+            pnlMenu.Resize += (s, e) => CentrarMenu();
             CentrarMenu();
+            btnJugar.BackColor = Color.FromArgb(245, 200, 66);
+            btnJugar.ForeColor = Color.FromArgb(40, 40, 40);
+            btnJugar.FlatStyle = FlatStyle.Flat;
+            btnJugar.FlatAppearance.BorderSize = 0;
+            btnJugar.FlatAppearance.MouseOverBackColor = Color.FromArgb(250, 215, 110);
+            btnJugar.Font = new Font("Segoe UI", 16, FontStyle.Bold);
         }
 
         private void CentrarMenu()
@@ -27,23 +52,29 @@ namespace UNO
             int alto = pnlMenu.Height;
 
             TextBox[] cajas = { txtJugador1, txtJugador2, txtJugador3, txtJugador4 };
-            int separacion = 15;
-            int total = cajas.Length * cajas[0].Width + (cajas.Length - 1) * separacion;
-            int x = centro - total / 2;
+            int ancho = cajas[0].Width;
+            int altoCaja = cajas[0].Height;
+            int sepH = 20;
+            int sepV = 15;
+
+            int x0 = centro - (2 * ancho + sepH) / 2;
+            int y0 = (int)(alto * 0.68);
 
             for (int i = 0; i < cajas.Length; i++)
             {
-                cajas[i].Left = x + i * (cajas[i].Width + separacion);
-                cajas[i].Top = (int)(alto * 0.70);
+                int col = i % 2;
+                int fila = i / 2;
+                cajas[i].Left = x0 + col * (ancho + sepH);
+                cajas[i].Top = y0 + fila * (altoCaja + sepV);
             }
 
             btnJugar.Left = centro - btnJugar.Width / 2;
-            btnJugar.Top = (int)(alto * 0.80);
-        } 
+            btnJugar.Top = y0 + 2 * (altoCaja + sepV) + 10;
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // vacío: la partida se crea al dar JUGAR, cuando ya tenemos los nombres
+
         }
 
         private void btnJugar_Click(object sender, EventArgs e)
@@ -54,7 +85,7 @@ namespace UNO
             for (int i = 0; i < cajas.Length; i++)
             {
                 string nombre = cajas[i].Text.Trim();
-                if (nombre == "") nombre = "Jugador " + (i + 1); // si lo dejan vacío, nombre por defecto
+                if (nombre == "") nombre = "Jugador " + (i + 1);
 
                 if (nombres.Exists(x => x.Equals(nombre, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -88,8 +119,7 @@ namespace UNO
             lblMazo.Text = "Cartas en el mazo: " + juego.CartasEnMazo;
             lblAviso.Text = aviso;
 
-            lblCartaSuperior.Text = Texto(juego.CartaSuperior);
-            lblCartaSuperior.BackColor = ColorUI(juego.CartaSuperior.Color);
+            AplicarCarta(lblCartaSuperior, juego.CartaSuperior);
             lblColorActivo.Text = "Color activo: " + juego.ColorActual;
             lblColorActivo.BackColor = ColorUI(juego.ColorActual);
 
@@ -110,12 +140,16 @@ namespace UNO
             List<Carta> mano = juego.Jugadores[turno].Mano;
             for (int i = 0; i < mano.Count; i++)
             {
-                int indice = i; // copia, para que el clic use la posición correcta
+                int indice = i;
                 Button b = new Button();
-                b.Text = Texto(mano[i]);
-                b.BackColor = ColorUI(mano[i].Color);
-                b.Size = new Size(80, 110);
-                b.Enabled = juego.PuedeJugar(turno, indice); // deshabilita las no jugables
+                b.Size = new Size(90, 130);
+                b.FlatStyle = FlatStyle.Flat;
+                b.FlatAppearance.BorderSize = 0;
+                AplicarCarta(b, mano[i]);
+
+                bool jugable = juego.PuedeJugar(turno, indice);
+                b.Margin = new Padding(3, jugable ? 3 : 25, 3, 3);
+
                 b.Click += (s, ev) => ClicCarta(indice);
                 flpMano.Controls.Add(b);
             }
@@ -208,5 +242,55 @@ namespace UNO
                 default: return Color.LightGray;
             }
         }
+
+        private void pnlMenu_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private Image ImagenCarta(Carta carta)
+        {
+            string nombre;
+            switch (carta.Tipo)
+            {
+                case TipoCarta.Numero: nombre = carta.Color + "_" + carta.Numero; break;
+                case TipoCarta.Saltar: nombre = carta.Color + "_Saltar"; break;
+                case TipoCarta.Reversa: nombre = carta.Color + "_Reversa"; break;
+                case TipoCarta.MasDos: nombre = carta.Color + "_MasDos"; break;
+                case TipoCarta.Comodin: nombre = "Comodin"; break;
+                case TipoCarta.MasCuatro: nombre = "MasCuatro"; break;
+                default: return null;
+            }
+            return UNO.Properties.Resources.ResourceManager.GetObject(nombre) as Image;
+        }
+
+
+        private void AplicarCarta(Control ctrl, Carta carta)
+        {
+            Image img = ImagenCarta(carta);
+            ctrl.BackgroundImage = img;
+            ctrl.BackgroundImageLayout = ImageLayout.Zoom;
+            if (img != null)
+            {
+                ctrl.Text = "";
+            }
+            else
+            {
+                ctrl.Text = Texto(carta);
+                ctrl.BackColor = ColorUI(carta.Color);
+            }
+        }
+
+        private void CentrarJuego()
+        {
+            int dx = Math.Max(0, (ClientSize.Width - tamDiseno.Width) / 2);
+            int dy = Math.Max(0, (ClientSize.Height - tamDiseno.Height) / 2);
+
+            for (int i = 0; i < controlesJuego.Length; i++)
+            {
+                controlesJuego[i].Location = new Point(posOriginal[i].X + dx, posOriginal[i].Y + dy);
+            }
+        }
     }
+
 }
