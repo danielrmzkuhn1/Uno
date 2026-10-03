@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using UNO;
 
 namespace UNO
 {
@@ -11,8 +12,8 @@ namespace UNO
         [STAThread]
         static void Main()
         {
-
-            correrConsolaTEST.Ejecutar();
+            Application.Run(new Form1());
         }
+
     }
 }
