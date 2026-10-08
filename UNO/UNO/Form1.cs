@@ -11,17 +11,33 @@ namespace UNO
         private Juego juego;
         private bool manoVisible = false;
         private string aviso = "";
+
         private Control[] controlesJuego;
         private Point[] posOriginal;
         private Size tamDiseno;
 
+        private const int SEGUNDOS_UNO = 5;
+        private const int CARTAS_CASTIGO_UNO = 2;
+        private Button btnUno;
+        private System.Windows.Forms.Timer tmrUno = new System.Windows.Forms.Timer();
+        private int unoJugador = -1;  
+        private int segundosUno = 0;
+
+        private Panel pnlIzq, pnlArriba, pnlDer;
+
+        private Dictionary<string, Image> cacheCartas = new Dictionary<string, Image>();
+
         public Form1()
         {
             InitializeComponent();
+
+            CrearBotonUno();
+            CrearMesa();
+
             controlesJuego = new Control[]
             {
                 lblTurno, lblSentido, lblMazo, lblColorActivo, lblAviso,
-                lblCartaSuperior, lstJugadores, flpMano, btnRobar, btnVerCartas
+                lblCartaSuperior, lstJugadores, flpMano, btnRobar, btnVerCartas, btnUno
             };
 
             posOriginal = new Point[controlesJuego.Length];
@@ -45,6 +61,7 @@ namespace UNO
             btnJugar.FlatAppearance.MouseOverBackColor = Color.FromArgb(250, 215, 110);
             btnJugar.Font = new Font("Segoe UI", 16, FontStyle.Bold);
         }
+
 
         private void CentrarMenu()
         {
@@ -102,11 +119,17 @@ namespace UNO
             Redibujar();
         }
 
-        // Equivale al Dibujar() de la consola.
+        private void pnlMenu_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+
         private void Redibujar()
         {
             if (juego.JuegoTerminado)
             {
+                CerrarVentanaUno();
                 MessageBox.Show("Ganó " + juego.Jugadores[juego.Ganador.Value].Nombre, "Fin del juego");
                 Close();
                 return;
@@ -130,7 +153,8 @@ namespace UNO
                 lstJugadores.Items.Add((i == turno ? "> " : "  ") + j.Nombre + " (" + j.Mano.Count + " cartas)");
             }
 
-            // Pantalla compartida: la mano solo se ve después de "Ver mis cartas".
+            DibujarMesa();
+
             btnVerCartas.Visible = !manoVisible;
             flpMano.Visible = manoVisible;
             btnRobar.Enabled = manoVisible && juego.PuedeRobar(turno);
@@ -170,6 +194,11 @@ namespace UNO
             bool ok = juego.JugarCarta(turno, indice, color);
             aviso = juego.Mensaje;
             if (ok) manoVisible = false;
+
+            if (ok && !juego.JuegoTerminado && juego.Jugadores[turno].Mano.Count == 1)
+            {
+                IniciarVentanaUno(turno);
+            }
             Redibujar();
         }
 
@@ -187,7 +216,6 @@ namespace UNO
             Redibujar();
         }
 
-        // Cuadro con 4 botones para escoger color del comodín.
         private ColorCarta PedirColor()
         {
             ColorCarta elegido = ColorCarta.Ninguno;
@@ -217,6 +245,7 @@ namespace UNO
             return elegido;
         }
 
+
         private string Texto(Carta carta)
         {
             switch (carta.Tipo)
@@ -243,11 +272,6 @@ namespace UNO
             }
         }
 
-        private void pnlMenu_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
         private Image ImagenCarta(Carta carta)
         {
             string nombre;
@@ -261,9 +285,15 @@ namespace UNO
                 case TipoCarta.MasCuatro: nombre = "MasCuatro"; break;
                 default: return null;
             }
-            return UNO.Properties.Resources.ResourceManager.GetObject(nombre) as Image;
-        }
 
+            Image img;
+            if (!cacheCartas.TryGetValue(nombre, out img))
+            {
+                img = UNO.Properties.Resources.ResourceManager.GetObject(nombre) as Image;
+                cacheCartas[nombre] = img;
+            }
+            return img;
+        }
 
         private void AplicarCarta(Control ctrl, Carta carta)
         {
@@ -281,6 +311,10 @@ namespace UNO
             }
         }
 
+        // =====================================================
+        //  CENTRAR EL JUEGO AL CAMBIAR EL TAMAÑO DE LA VENTANA
+        // =====================================================
+
         private void CentrarJuego()
         {
             int dx = Math.Max(0, (ClientSize.Width - tamDiseno.Width) / 2);
@@ -291,6 +325,152 @@ namespace UNO
                 controlesJuego[i].Location = new Point(posOriginal[i].X + dx, posOriginal[i].Y + dy);
             }
         }
-    }
 
+        private void CrearBotonUno()
+        {
+            btnUno = new Button();
+            btnUno.Text = "¡UNO!";
+            btnUno.Size = new Size(150, 60);
+            btnUno.Location = new Point(btnRobar.Left, btnRobar.Bottom + 70);
+            btnUno.BackColor = Color.FromArgb(220, 50, 47);
+            btnUno.ForeColor = Color.White;
+            btnUno.FlatStyle = FlatStyle.Flat;
+            btnUno.FlatAppearance.BorderSize = 0;
+            btnUno.Font = new Font("Segoe UI", 18, FontStyle.Bold);
+            btnUno.Visible = false;
+            btnUno.Click += btnUno_Click;
+            Controls.Add(btnUno);
+
+            tmrUno.Interval = 1000; 
+            tmrUno.Tick += tmrUno_Tick;
+        }
+
+        private void IniciarVentanaUno(int jugador)
+        {
+            unoJugador = jugador;
+            segundosUno = SEGUNDOS_UNO;
+            btnUno.Text = "¡UNO! (" + segundosUno + ")";
+            btnUno.Visible = true;
+            btnUno.BringToFront();
+            tmrUno.Start();
+
+            aviso = (aviso == "" ? "" : aviso + "  |  ") + juego.Jugadores[jugador].Nombre + " tiene 1 carta: ¡UNO!";
+        }
+
+        private void CerrarVentanaUno()
+        {
+            tmrUno.Stop();
+            btnUno.Visible = false;
+            unoJugador = -1;
+        }
+
+        private void btnUno_Click(object sender, EventArgs e)
+        {
+            if (unoJugador < 0) return;
+            aviso = juego.Jugadores[unoJugador].Nombre + " dijo ¡UNO!";
+            CerrarVentanaUno();
+            Redibujar();
+        }
+
+        private void tmrUno_Tick(object sender, EventArgs e)
+        {
+            segundosUno--;
+            if (segundosUno > 0)
+            {
+                btnUno.Text = "¡UNO! (" + segundosUno + ")";
+                return;
+            }
+
+            int castigado = unoJugador;
+            CerrarVentanaUno();
+
+            juego.CastigarUno(castigado, CARTAS_CASTIGO_UNO);
+            aviso = juego.Mensaje;
+            Redibujar();
+        }
+
+
+        private void CrearMesa()
+        {
+            pnlIzq = new Panel(); pnlIzq.Size = new Size(110, 380); pnlIzq.BackColor = Color.Transparent;
+            pnlArriba = new Panel(); pnlArriba.Size = new Size(420, 130); pnlArriba.BackColor = Color.Transparent;
+            pnlDer = new Panel(); pnlDer.Size = new Size(110, 380); pnlDer.BackColor = Color.Transparent;
+
+            Controls.Add(pnlIzq);
+            Controls.Add(pnlArriba);
+            Controls.Add(pnlDer);
+
+            Resize += (s, e) => PosicionarMesa();
+            PosicionarMesa();
+        }
+
+        private void PosicionarMesa()
+        {
+            pnlArriba.Location = new Point((ClientSize.Width - pnlArriba.Width) / 2, 10);
+            pnlIzq.Location = new Point(20, (ClientSize.Height - pnlIzq.Height) / 2 - 40);
+            pnlDer.Location = new Point(ClientSize.Width - pnlDer.Width - 20, (ClientSize.Height - pnlDer.Height) / 2 - 40);
+        }
+
+        private void lblCartaSuperior_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void DibujarMesa()
+        {
+            int t = juego.TurnoActual;
+            int n = juego.Jugadores.Count;
+
+            pnlIzq.Controls.Clear();
+            pnlArriba.Controls.Clear();
+            pnlDer.Controls.Clear();
+
+            if (n == 2)
+            {
+                DibujarRival(pnlArriba, juego.Jugadores[(t + 1) % n], false);
+            }
+            else if (n == 3)
+            {
+                DibujarRival(pnlIzq, juego.Jugadores[(t + 1) % n], true);
+                DibujarRival(pnlDer, juego.Jugadores[(t + 2) % n], true);
+            }
+            else if (n >= 4)
+            {
+                DibujarRival(pnlIzq, juego.Jugadores[(t + 1) % n], true);
+                DibujarRival(pnlArriba, juego.Jugadores[(t + 2) % n], false);
+                DibujarRival(pnlDer, juego.Jugadores[(t + 3) % n], true);
+            }
+        }
+
+        private void DibujarRival(Panel zona, Jugador j, bool lateral)
+        {
+            int n = j.Mano.Count;
+
+            Label nombre = new Label();
+            nombre.Text = j.Nombre + " (" + n + ")";
+            nombre.ForeColor = Color.White;
+            nombre.BackColor = Color.Transparent;
+            nombre.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+            nombre.AutoSize = true;
+            nombre.Location = new Point(0, 0);
+            zona.Controls.Add(nombre);
+
+            int w = 56, h = 80;
+            int ini = 28;
+
+            int espacio = lateral ? zona.Height - ini - h : zona.Width - w;
+            int paso = n > 1 ? Math.Min(30, espacio / (n - 1)) : 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                Label c = new Label();
+                c.Size = new Size(w, h);
+                c.BackColor = Color.Transparent;
+                AplicarCarta(c, j.Mano[i]);
+                c.Location = lateral ? new Point(0, ini + i * paso) : new Point(i * paso, ini);
+                zona.Controls.Add(c);
+                c.BringToFront();
+            }
+        }
+    }
 }
