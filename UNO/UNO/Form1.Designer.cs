@@ -54,7 +54,7 @@
             this.lblTurno.BackColor = System.Drawing.Color.Black;
             this.lblTurno.Font = new System.Drawing.Font("Segoe UI", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTurno.ForeColor = System.Drawing.SystemColors.ButtonFace;
-            this.lblTurno.Location = new System.Drawing.Point(34, 34);
+            this.lblTurno.Location = new System.Drawing.Point(186, 184);
             this.lblTurno.Name = "lblTurno";
             this.lblTurno.Size = new System.Drawing.Size(141, 38);
             this.lblTurno.TabIndex = 0;
@@ -66,7 +66,7 @@
             this.lblSentido.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
             this.lblSentido.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblSentido.ForeColor = System.Drawing.SystemColors.ButtonFace;
-            this.lblSentido.Location = new System.Drawing.Point(37, 85);
+            this.lblSentido.Location = new System.Drawing.Point(189, 232);
             this.lblSentido.Name = "lblSentido";
             this.lblSentido.Size = new System.Drawing.Size(77, 23);
             this.lblSentido.TabIndex = 1;
@@ -78,7 +78,7 @@
             this.lblMazo.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
             this.lblMazo.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblMazo.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.lblMazo.Location = new System.Drawing.Point(444, 34);
+            this.lblMazo.Location = new System.Drawing.Point(713, 41);
             this.lblMazo.Name = "lblMazo";
             this.lblMazo.Size = new System.Drawing.Size(156, 23);
             this.lblMazo.TabIndex = 2;
@@ -88,12 +88,13 @@
             // 
             this.lblCartaSuperior.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
             this.lblCartaSuperior.ForeColor = System.Drawing.SystemColors.ButtonFace;
-            this.lblCartaSuperior.Location = new System.Drawing.Point(558, 137);
+            this.lblCartaSuperior.Location = new System.Drawing.Point(540, 194);
             this.lblCartaSuperior.Name = "lblCartaSuperior";
             this.lblCartaSuperior.Size = new System.Drawing.Size(130, 188);
             this.lblCartaSuperior.TabIndex = 3;
             this.lblCartaSuperior.Text = "label1";
             this.lblCartaSuperior.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblCartaSuperior.Click += new System.EventHandler(this.lblCartaSuperior_Click);
             // 
             // lblColorActivo
             // 
@@ -101,7 +102,7 @@
             this.lblColorActivo.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
             this.lblColorActivo.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblColorActivo.ForeColor = System.Drawing.SystemColors.Control;
-            this.lblColorActivo.Location = new System.Drawing.Point(674, 34);
+            this.lblColorActivo.Location = new System.Drawing.Point(713, 9);
             this.lblColorActivo.Name = "lblColorActivo";
             this.lblColorActivo.Size = new System.Drawing.Size(114, 23);
             this.lblColorActivo.TabIndex = 4;
@@ -113,7 +114,7 @@
             this.lblAviso.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.lblAviso.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblAviso.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.lblAviso.Location = new System.Drawing.Point(1144, 137);
+            this.lblAviso.Location = new System.Drawing.Point(734, 140);
             this.lblAviso.Name = "lblAviso";
             this.lblAviso.Size = new System.Drawing.Size(70, 28);
             this.lblAviso.TabIndex = 5;
@@ -126,9 +127,9 @@
             this.lstJugadores.Font = new System.Drawing.Font("Segoe UI Semibold", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lstJugadores.FormattingEnabled = true;
             this.lstJugadores.ItemHeight = 23;
-            this.lstJugadores.Location = new System.Drawing.Point(1073, 12);
+            this.lstJugadores.Location = new System.Drawing.Point(926, 9);
             this.lstJugadores.Name = "lstJugadores";
-            this.lstJugadores.Size = new System.Drawing.Size(228, 115);
+            this.lstJugadores.Size = new System.Drawing.Size(199, 115);
             this.lstJugadores.TabIndex = 6;
             // 
             // flpMano
@@ -146,7 +147,7 @@
             this.btnRobar.BackColor = System.Drawing.Color.CornflowerBlue;
             this.btnRobar.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnRobar.ForeColor = System.Drawing.Color.Black;
-            this.btnRobar.Location = new System.Drawing.Point(818, 180);
+            this.btnRobar.Location = new System.Drawing.Point(739, 250);
             this.btnRobar.Name = "btnRobar";
             this.btnRobar.Size = new System.Drawing.Size(164, 43);
             this.btnRobar.TabIndex = 8;
@@ -158,7 +159,7 @@
             // 
             this.btnVerCartas.BackColor = System.Drawing.Color.Firebrick;
             this.btnVerCartas.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnVerCartas.Location = new System.Drawing.Point(818, 240);
+            this.btnVerCartas.Location = new System.Drawing.Point(739, 327);
             this.btnVerCartas.Name = "btnVerCartas";
             this.btnVerCartas.Size = new System.Drawing.Size(164, 43);
             this.btnVerCartas.TabIndex = 9;
@@ -170,8 +171,8 @@
             // 
             this.pnlMenu.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("pnlMenu.BackgroundImage")));
             this.pnlMenu.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pnlMenu.Controls.Add(this.txtJugador4);
             this.pnlMenu.Controls.Add(this.lblAviso);
+            this.pnlMenu.Controls.Add(this.txtJugador4);
             this.pnlMenu.Controls.Add(this.txtJugador2);
             this.pnlMenu.Controls.Add(this.txtJugador3);
             this.pnlMenu.Controls.Add(this.txtJugador1);

@@ -135,6 +135,28 @@ namespace UNO.Logica
             return true;
         }
 
+        public void CastigarUno(int jugador, int cantidad)
+        {
+            if (JuegoTerminado || jugador < 0 || jugador >= Jugadores.Count)
+            {
+                return;
+            }
+
+            int robadas = 0;
+            for (int i = 0; i < cantidad; i++)
+            {
+                Carta carta = mazo.Robar();
+                if (carta == null)
+                {
+                    break;
+                }
+                Jugadores[jugador].Mano.Add(carta);
+                robadas++;
+            }
+
+            Mensaje = Jugadores[jugador].Nombre + " olvidó decir UNO y roba " + robadas + " cartas";
+        }
+
         private string MotivoInvalido(int jugador, int carta)
         {
             if (JuegoTerminado)
