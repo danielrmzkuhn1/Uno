@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using UNO.Logica;
 
@@ -9,6 +10,10 @@ namespace UNO
     public partial class Form1 : Form
     {
         private Juego juego;
+        private ApiService api = new ApiService();
+        private int idPartida;
+        private List<int> idsJugadores = new List<int>();
+        private int turnoHistorial = 0;
         private bool manoVisible = false;
         private string aviso = "";
 
@@ -94,7 +99,7 @@ namespace UNO
 
         }
 
-        private void btnJugar_Click(object sender, EventArgs e)
+        private async void btnJugar_Click(object sender, EventArgs e)
         {
             TextBox[] cajas = { txtJugador1, txtJugador2, txtJugador3, txtJugador4 };
             List<string> nombres = new List<string>();
@@ -112,6 +117,29 @@ namespace UNO
                 nombres.Add(nombre);
             }
 
+            try
+            {
+                idsJugadores.Clear();
+
+                foreach (string nombre in nombres)
+                {
+                    int id = await api.CrearJugador(nombre);
+                    idsJugadores.Add(id);
+                }
+
+                idPartida = await api.CrearPartida();
+                turnoHistorial = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al conectar con la API: " + ex.Message);
+                return;
+            }
+
+
+            idPartida = await api.CrearPartida();
+            turnoHistorial = 0;
+
             juego = new Juego(nombres);
             manoVisible = false;
             aviso = "";
@@ -125,11 +153,33 @@ namespace UNO
         }
 
 
-        private void Redibujar()
+        private async void Redibujar()
         {
             if (juego.JuegoTerminado)
             {
                 CerrarVentanaUno();
+                try
+                {
+                    if (juego.Ganador.HasValue)
+                    {
+                        int indiceGanador = juego.Ganador.Value;
+                        int idGanador = idsJugadores[indiceGanador];
+
+                        await api.GuardarGanador(idPartida, idGanador);
+                        await api.GuardarJugada(
+                            idPartida,
+                            idsJugadores[juego.TurnoActual],
+                            ++turnoHistorial,
+                            "Gano",
+                            null,
+                            null
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al guardar ganador: " + ex.Message);
+                }
                 MessageBox.Show("Ganó " + juego.Jugadores[juego.Ganador.Value].Nombre, "Fin del juego");
                 Close();
                 return;
@@ -179,7 +229,7 @@ namespace UNO
             }
         }
 
-        private void ClicCarta(int indice)
+        private async void ClicCarta(int indice)
         {
             int turno = juego.TurnoActual;
             Carta carta = juego.Jugadores[turno].Mano[indice];
@@ -192,6 +242,17 @@ namespace UNO
             }
 
             bool ok = juego.JugarCarta(turno, indice, color);
+            if (ok)
+            {
+                await api.GuardarJugada(
+                    idPartida,
+                    idsJugadores[turno],
+                    ++turnoHistorial,
+                    "Jugar",
+                    carta.Color.ToString(),
+                    Texto(carta)
+                );
+            }
             aviso = juego.Mensaje;
             if (ok) manoVisible = false;
 
@@ -202,11 +263,22 @@ namespace UNO
             Redibujar();
         }
 
-        private void btnRobar_Click(object sender, EventArgs e)
+        private async void btnRobar_Click(object sender, EventArgs e)
         {
             bool ok = juego.RobarCarta(juego.TurnoActual);
             aviso = juego.Mensaje;
-            if (ok) manoVisible = false;
+            if (ok)
+            {
+                manoVisible = false;
+                await api.GuardarJugada(
+                    idPartida,
+                    idsJugadores[juego.TurnoActual],
+                    ++turnoHistorial,
+                    "Robar",
+                    null,
+                    null
+                );
+            }
             Redibujar();
         }
 
@@ -364,10 +436,18 @@ namespace UNO
             unoJugador = -1;
         }
 
-        private void btnUno_Click(object sender, EventArgs e)
+        private async void btnUno_Click(object sender, EventArgs e)
         {
             if (unoJugador < 0) return;
             aviso = juego.Jugadores[unoJugador].Nombre + " dijo ¡UNO!";
+            await api.GuardarJugada(
+                idPartida,
+                idsJugadores[juego.TurnoActual],
+                ++turnoHistorial,
+                "Dijo Uno",
+                null,
+                null
+            );
             CerrarVentanaUno();
             Redibujar();
         }
@@ -472,5 +552,6 @@ namespace UNO
                 c.BringToFront();
             }
         }
+
     }
 }

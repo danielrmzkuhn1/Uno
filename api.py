@@ -9,12 +9,9 @@ def obtener_conexion():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Alex_17020673",
+        password="Dani6^gerar2",
         database="uno_db"
     )
-
-
-
 
 # =========================
 # MODELOS
