@@ -24,6 +24,15 @@ namespace UNO
         private readonly Button crear = new Button { Text = "Crear sala", Width = 170, Height = 36 };
         private readonly Button entrar = new Button { Text = "Unirse a sala", Width = 170, Height = 36 };
         private readonly Button iniciar = new Button { Text = "Iniciar partida", Width = 350, Height = 40 };
+
+        private readonly Button btnCancelar = new Button
+        {
+            Text = "Cancelar sala",
+            Width = 350,
+            Height = 36,
+            BackColor = Color.Firebrick,
+            ForeColor = Color.White
+        };
         private readonly Button btnUno = new Button { Text = "¡UNO!", Width = 164, Height = 50 };
         private readonly Label espera = new Label { AutoSize = true, MaximumSize = new Size(370, 0) };
         private readonly Label conexion = new Label { AutoSize = true, ForeColor = Color.DarkRed, MaximumSize = new Size(370, 0) };
@@ -57,6 +66,7 @@ namespace UNO
             menu.Controls.Add(crear);
             menu.Controls.Add(entrar);
             menu.Controls.Add(iniciar);
+            menu.Controls.Add(btnCancelar);
             menu.Controls.Add(espera);
             menu.Controls.Add(conexion);
             pnlMenu.Controls.Add(menu);
@@ -64,9 +74,12 @@ namespace UNO
             pnlMenu.Resize += (s, e) => centrar();
             centrar();
             iniciar.Visible = false;
+            btnCancelar.Visible = false;
+
             crear.Click += async (s, e) => await Conectar(true);
             entrar.Click += async (s, e) => await Conectar(false);
             iniciar.Click += async (s, e) => await Accion("iniciar");
+            btnCancelar.Click += async (s, e) => await CancelarSala();
             Controls.Add(lblAviso);
             lblAviso.Location = new Point(20, 400);
             lblAviso.AutoSize = false;
@@ -154,6 +167,49 @@ namespace UNO
             }
         }
 
+
+        private async Task CancelarSala()
+        {
+            if (ocupado || estado == null || !conectado || (int)estado["yo"] != 0)
+                return;
+
+            var confirmar = MessageBox.Show(
+                this,
+                "¿Estás seguro de que quieres cancelar la sala?\nLos demás jugadores serán notificados.",
+                "Cancelar sala",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            );
+
+            if (confirmar != DialogResult.Yes)
+                return;
+
+            ocupado = true;
+            btnCancelar.Enabled = false;
+
+            try
+            {
+                var recibido = await api.Cancelar();
+
+                if (!cerrado)
+                {
+                    AplicarEstado(recibido);
+                    conexion.Text = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!cerrado)
+                    conexion.Text = "No se pudo cancelar la sala: " + ex.Message;
+            }
+            finally
+            {
+                ocupado = false;
+                if (!cerrado)
+                    Dibujar();
+            }
+        }
+
         private void EnUI(Action accion)
         {
             if (cerrado || IsDisposed || !IsHandleCreated) return;
@@ -189,19 +245,50 @@ namespace UNO
         private void Dibujar()
         {
             if (estado == null) return;
+
             string fase = (string)estado["fase"];
             int yo = (int)estado["yo"];
             var jugadores = (JArray)estado["jugadores"];
             int turno = (int)estado["turno"];
             int pendiente = (int)estado["uno_jugador"];
-            pnlMenu.Visible = fase == "espera";
-            foreach (var control in controlesJuego) control.Visible = fase != "espera";
-            iniciar.Visible = fase == "espera" && yo == 0;
+
+            bool esperando = fase == "espera";
+            bool cancelada = fase == "cancelada";
+
+            pnlMenu.Visible = esperando || cancelada;
+
+            foreach (var control in controlesJuego)
+                control.Visible = fase == "jugando" || fase == "terminada";
+
+            btnUno.Visible = false;
+
+            iniciar.Visible = esperando && yo == 0;
             iniciar.Enabled = conectado && !ocupado && jugadores.Count >= 2;
-            espera.Text = "Sala: " + (string)estado["codigo"] + "\nComparte este código.\n" +
-                String.Join("\n", jugadores.Select(j => (string)j["nombre"])) +
-                (yo == 0 ? "\nInicia cuando todos estén dentro." : "\nEsperando al creador.");
-            if (fase == "espera") return;
+
+            btnCancelar.Visible = esperando && yo == 0;
+            btnCancelar.Enabled = conectado && !ocupado;
+
+            if (cancelada)
+            {
+                espera.Text = "SALA CANCELADA\n\n" +
+                    (string)estado["mensaje"] +
+                    "\n\nEl creador ha cancelado esta partida.";
+            }
+            else
+            {
+                espera.Text =
+                    "CÓDIGO DE SALA: " + (string)estado["codigo"] +
+                    "\n\nJUGADORES EN LA SALA:\n" +
+                    String.Join("\n", jugadores.Select(
+                        (j, i) => (i + 1) + ". " + (string)j["nombre"]
+                    )) +
+                    (yo == 0
+                        ? "\n\nEres el creador. Puedes iniciar o cancelar la sala."
+                        : "\n\nEsperando a que el creador inicie la partida.");
+            }
+
+            if (esperando || cancelada) return;
+
             bool miTurno = fase == "jugando" && turno == yo && pendiente == -1;
             lblTurno.Text = fase == "terminada" ? "Ganó " + (string)jugadores[(int)estado["ganador"]]["nombre"] : "Turno de: " + (string)jugadores[turno]["nombre"];
             lblSentido.Text = (bool)estado["horario"] ? "Sentido: horario" : "Sentido: antihorario";

@@ -126,6 +126,14 @@ namespace UNO
             };
             return (JObject)(await Enviar(mensaje))["estado"];
         }
+        public async Task<JObject> Cancelar()
+        {
+            return (JObject)(await Enviar(new JObject
+            {
+                ["tipo"] = "cancelar"
+            }))["estado"];
+        }
+
 
         private void Terminar(string motivo)
         {
