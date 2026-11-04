@@ -96,8 +96,17 @@ class Servidor:
             return dict(estado=await asyncio.to_thread(servicio.consultar, c.codigo, 'Bearer ' + c.token))
         if tipo == 'accion':
             datos = servicio.Accion(**m['datos'])
-            estado = await asyncio.to_thread(servicio.actuar, c.codigo, datos, 'Bearer ' + c.token)
+            estado = await asyncio.to_thread(
+                servicio.actuar, c.codigo, datos, 'Bearer ' + c.token
+            )
             return dict(estado=estado)
+
+        if tipo == 'cancelar':
+            estado = await asyncio.to_thread(
+                servicio.cancelar, c.codigo, 'Bearer ' + c.token
+            )
+            return dict(estado=estado)
+
         raise ValueError('Tipo de mensaje desconocido')
 
     async def atender(self, reader, writer):

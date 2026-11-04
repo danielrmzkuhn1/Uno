@@ -161,3 +161,24 @@ def actuar(codigo: str, datos: Accion, authorization: Optional[str] = None):
     if error:
         raise ErrorServicio(409, error)
     return motor.vista(s, i, fila['codigo'])
+
+
+def cancelar(codigo: str, authorization: Optional[str] = None):
+    with transaccion() as cur:
+        fila, s = cargar(cur, codigo)
+        i = autenticar(s, authorization)
+
+        if i != 0:
+            raise ErrorServicio(403, 'Solo el creador puede cancelar la sala')
+
+        if s['fase'] != 'espera':
+            raise ErrorServicio(409, 'La partida ya inició o fue cancelada')
+
+        s['fase'] = 'cancelada'
+        s['mensaje'] = s['jugadores'][i]['nombre'] + ' canceló la sala'
+        s['version'] += 1
+
+        guardar(cur, fila, s)
+
+    return motor.vista(s, i, fila['codigo'])
+
