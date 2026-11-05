@@ -33,6 +33,12 @@ namespace UNO
             BackColor = Color.Firebrick,
             ForeColor = Color.White
         };
+        private readonly Button btnSalir = new Button
+        {
+            Text = "Salir de sala",
+            Width = 350,
+            Height = 36
+        };
         private readonly Button btnUno = new Button { Text = "¡UNO!", Width = 164, Height = 50 };
         private readonly Label espera = new Label { AutoSize = true, MaximumSize = new Size(370, 0) };
         private readonly Label conexion = new Label { AutoSize = true, ForeColor = Color.DarkRed, MaximumSize = new Size(370, 0) };
@@ -67,6 +73,7 @@ namespace UNO
             menu.Controls.Add(entrar);
             menu.Controls.Add(iniciar);
             menu.Controls.Add(btnCancelar);
+            menu.Controls.Add(btnSalir);
             menu.Controls.Add(espera);
             menu.Controls.Add(conexion);
             pnlMenu.Controls.Add(menu);
@@ -79,6 +86,7 @@ namespace UNO
             crear.Click += async (s, e) => await Conectar(true);
             entrar.Click += async (s, e) => await Conectar(false);
             iniciar.Click += async (s, e) => await Accion("iniciar");
+            btnSalir.Click += async (s, e) => await SalirSala();
             btnCancelar.Click += async (s, e) => await CancelarSala();
             Controls.Add(lblAviso);
             lblAviso.Location = new Point(20, 400);
@@ -123,7 +131,7 @@ namespace UNO
 
         private async Task Conectar(bool nueva)
         {
-            if (ocupado || estado != null) return;
+            if (ocupado || estado != null || api != null) return;
             if (String.IsNullOrWhiteSpace(nombre.Text) || (!nueva && String.IsNullOrWhiteSpace(sala.Text)))
             { conexion.Text = "Escribe tu nombre y, para unirte, el código de sala."; return; }
             ocupado = true;
@@ -194,7 +202,7 @@ namespace UNO
                 if (!cerrado)
                 {
                     AplicarEstado(recibido);
-                    conexion.Text = "";
+                    VolverAlMenu();
                 }
             }
             catch (Exception ex)
@@ -206,6 +214,74 @@ namespace UNO
             {
                 ocupado = false;
                 if (!cerrado)
+                    Dibujar();
+            }
+        }
+
+        private void VolverAlMenu()
+        {
+            ApiService anterior = api;
+            api = null;
+            estado = null;
+            conectado = false;
+            ocupado = false;
+            versionDibujada = -1;
+
+            if (anterior != null)
+                anterior.Dispose();
+
+            servidor.Enabled = nombre.Enabled = sala.Enabled = true;
+            sala.Clear();
+
+            crear.Visible = entrar.Visible = true;
+            crear.Enabled = entrar.Enabled = true;
+
+            iniciar.Visible = btnCancelar.Visible = btnSalir.Visible = false;
+
+            espera.Text = "";
+            conexion.Text = "";
+            pnlMenu.Visible = true;
+
+            foreach (var control in controlesJuego)
+                control.Visible = false;
+
+            Text = "UNO · Sockets TCP";
+            pnlMenu.BringToFront();
+        }
+
+        private async Task SalirSala()
+        {
+            if (ocupado || estado == null)
+                return;
+
+            if ((string)estado["fase"] == "cancelada")
+            {
+                VolverAlMenu();
+                return;
+            }
+
+            if (!conectado || (string)estado["fase"] != "espera"
+                || (int)estado["yo"] == 0)
+                return;
+
+            ocupado = true;
+            btnSalir.Enabled = false;
+
+            try
+            {
+                await api.Salir();
+                if (!cerrado)
+                    VolverAlMenu();
+            }
+            catch (Exception ex)
+            {
+                if (!cerrado)
+                    conexion.Text = "No se pudo salir: " + ex.Message;
+            }
+            finally
+            {
+                ocupado = false;
+                if (!cerrado && estado != null)
                     Dibujar();
             }
         }
@@ -267,6 +343,9 @@ namespace UNO
 
             btnCancelar.Visible = esperando && yo == 0;
             btnCancelar.Enabled = conectado && !ocupado;
+            btnSalir.Visible = cancelada || (esperando && yo != 0);
+            btnSalir.Text = cancelada ? "Volver al menú" : "Salir de sala";
+            btnSalir.Enabled = !ocupado && (conectado || cancelada);
 
             if (cancelada)
             {

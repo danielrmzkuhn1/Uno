@@ -134,6 +134,14 @@ namespace UNO
             }))["estado"];
         }
 
+        public async Task Salir()
+        {
+            await Enviar(new JObject
+            {
+                ["tipo"] = "salir"
+            });
+        }
+
 
         private void Terminar(string motivo)
         {

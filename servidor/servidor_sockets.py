@@ -107,6 +107,22 @@ class Servidor:
             )
             return dict(estado=estado)
 
+        if tipo == 'salir':
+            codigo = c.codigo
+
+            await asyncio.to_thread(
+                servicio.salir,
+                codigo,
+                'Bearer ' + c.token
+            )
+
+            c.codigo = None
+            c.token = None
+
+            await self.publicar(codigo)
+
+            return dict(salio=True)
+
         raise ValueError('Tipo de mensaje desconocido')
 
     async def atender(self, reader, writer):

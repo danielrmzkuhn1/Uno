@@ -182,3 +182,28 @@ def cancelar(codigo: str, authorization: Optional[str] = None):
 
     return motor.vista(s, i, fila['codigo'])
 
+def salir(codigo: str, authorization: Optional[str] = None):
+    with transaccion() as cur:
+        fila, s = cargar(cur, codigo)
+        i = autenticar(s, authorization)
+
+        if s['fase'] != 'espera':
+            raise ErrorServicio(
+                409,
+                'Solo puedes salir antes de que inicie la partida'
+            )
+
+        if i == 0:
+            raise ErrorServicio(
+                409,
+                'El creador debe cancelar la sala'
+            )
+
+        nombre = s['jugadores'][i]['nombre']
+        s['jugadores'].pop(i)
+        s['version'] += 1
+        s['mensaje'] = nombre + ' salió de la sala'
+
+        guardar(cur, fila, s)
+
+    return {'salio': True}
