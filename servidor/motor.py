@@ -26,11 +26,15 @@ def evento(s, indice, accion, c=None):
                              valor=(str(c['Numero']) if c['Tipo'] == 'Numero' else c['Tipo']) if c else None))
 
 
-def entrar(s, nombre, jugador_id):
+def validar_entrada(s, nombre):
     if s['fase'] != 'espera' or len(s['jugadores']) >= 4:
         raise ValueError('La sala ya inició o está llena')
     if any(j['nombre'].casefold() == nombre.casefold() for j in s['jugadores']):
         raise ValueError('Ese nombre ya está en la sala')
+
+
+def entrar(s, nombre, jugador_id):
+    validar_entrada(s, nombre)
     s['jugadores'].append(jugador(nombre, jugador_id))
     s['version'] += 1
     return len(s['jugadores']) - 1

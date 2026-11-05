@@ -27,7 +27,7 @@ class ApiTests(unittest.TestCase):
         self.db = sqlite3.connect(':memory:', check_same_thread=False)
         self.db.row_factory = sqlite3.Row
         self.db.executescript('''
-            CREATE TABLE jugadores(id_jugador INTEGER PRIMARY KEY, nombre TEXT);
+            CREATE TABLE jugadores(id_jugador INTEGER PRIMARY KEY, nombre TEXT COLLATE NOCASE UNIQUE);
             CREATE TABLE partidas(id_partida INTEGER PRIMARY KEY, id_ganador INTEGER);
             CREATE TABLE historial_partida(id_evento INTEGER PRIMARY KEY, id_partida INTEGER,
                 id_jugador INTEGER, turno INTEGER, accion TEXT, color_carta TEXT, valor_carta TEXT);
@@ -82,7 +82,17 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(0, self.db.execute('SELECT COUNT(*) FROM historial_partida').fetchone()[0])
 
     def test_nombre_repetido_revierte_alta(self):
-        with self.assertRaises(ErrorServicio): api.entrar(self.codigo, api.Nombre(nombre='ANA'))
+        with self.assertRaises(ErrorServicio) as ex: api.entrar(self.codigo, api.Nombre(nombre='ANA'))
+        self.assertEqual('Ese nombre ya está en la sala', ex.exception.detail)
+        self.assertEqual(2, self.db.execute('SELECT COUNT(*) FROM jugadores').fetchone()[0])
+
+    def test_reutiliza_jugador_en_otra_partida(self):
+        otra = api.crear(api.Nombre(nombre='ANA'))
+        primera = json.loads(self.db.execute('SELECT estado FROM salas_wifi WHERE codigo=?',
+                                             (self.codigo,)).fetchone()[0])
+        segunda = json.loads(self.db.execute('SELECT estado FROM salas_wifi WHERE codigo=?',
+                                             (otra['estado']['codigo'],)).fetchone()[0])
+        self.assertEqual(primera['jugadores'][0]['id'], segunda['jugadores'][0]['id'])
         self.assertEqual(2, self.db.execute('SELECT COUNT(*) FROM jugadores').fetchone()[0])
 
     def test_expiracion_se_guarda_aun_con_version_vieja(self):
