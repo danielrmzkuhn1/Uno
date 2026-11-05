@@ -15,6 +15,16 @@ CREATE TABLE partidas (
         REFERENCES jugadores(id_jugador)
 );
 
+CREATE TABLE partida_jugadores (
+    id_partida INT NOT NULL,
+    id_jugador INT NOT NULL,
+    PRIMARY KEY (id_partida, id_jugador),
+    FOREIGN KEY (id_partida)
+        REFERENCES partidas(id_partida),
+    FOREIGN KEY (id_jugador)
+        REFERENCES jugadores(id_jugador)
+);
+
 CREATE TABLE historial_partida (
     id_evento INT AUTO_INCREMENT PRIMARY KEY,
     id_partida INT NOT NULL,

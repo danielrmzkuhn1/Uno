@@ -103,6 +103,12 @@ def guardar(cur, fila, s):
                 (json.dumps(s), fila['codigo']))
 
 
+def registrar_participantes(cur, id_partida, jugadores):
+    for jugador in jugadores:
+        cur.execute('INSERT INTO partida_jugadores(id_partida,id_jugador) VALUES (%s,%s)',
+                    (id_partida, jugador['id']))
+
+
 def salud():
     with transaccion() as cur:
         cur.execute('SELECT 1 FROM salas_wifi LIMIT 1')
@@ -158,6 +164,8 @@ def actuar(codigo: str, datos: Accion, authorization: Optional[str] = None):
             else:
                 try:
                     motor.actuar(s, i, datos.accion, datos.carta, datos.color)
+                    if datos.accion == 'iniciar':
+                        registrar_participantes(cur, fila['id_partida'], s['jugadores'])
                     s['version'] += 1
                     s['solicitudes'] = (s['solicitudes'] + [clave])[-200:]
                 except ValueError as e:

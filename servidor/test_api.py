@@ -29,6 +29,8 @@ class ApiTests(unittest.TestCase):
         self.db.executescript('''
             CREATE TABLE jugadores(id_jugador INTEGER PRIMARY KEY, nombre TEXT COLLATE NOCASE UNIQUE);
             CREATE TABLE partidas(id_partida INTEGER PRIMARY KEY, id_ganador INTEGER);
+            CREATE TABLE partida_jugadores(id_partida INTEGER, id_jugador INTEGER,
+                PRIMARY KEY (id_partida, id_jugador));
             CREATE TABLE historial_partida(id_evento INTEGER PRIMARY KEY, id_partida INTEGER,
                 id_jugador INTEGER, turno INTEGER, accion TEXT, color_carta TEXT, valor_carta TEXT);
             CREATE TABLE salas_wifi(codigo TEXT PRIMARY KEY, id_partida INTEGER, estado TEXT);
@@ -63,10 +65,12 @@ class ApiTests(unittest.TestCase):
     def test_reintento_no_duplica_jugada(self):
         inicio = self.accion('iniciar')
         api.actuar(self.codigo, inicio, self.token)
+        self.assertEqual(2, self.db.execute('SELECT COUNT(*) FROM partida_jugadores').fetchone()[0])
         robo = self.accion('robar', '2')
         primera = api.actuar(self.codigo, robo, self.token)
         segunda = api.actuar(self.codigo, robo, self.token)
         self.assertEqual(primera, segunda)
+        self.assertEqual(2, self.db.execute('SELECT COUNT(*) FROM partida_jugadores').fetchone()[0])
         self.assertEqual(1, self.db.execute("SELECT COUNT(*) FROM historial_partida WHERE accion='Robar'").fetchone()[0])
         self.assertEqual(8, len(segunda['mano']))
 
