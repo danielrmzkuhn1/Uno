@@ -34,6 +34,24 @@ class MotorTests(unittest.TestCase):
         motor.iniciar(s, 0)
         with self.assertRaises(ValueError): motor.entrar(s, 'Tarde', 3)
 
+    def test_revancha_reinicia_y_conserva_identidades(self):
+        s = self.partida(2)
+        s['fase'] = 'terminada'
+        s['ganador'] = 0
+        s['version'] = 8
+        tokens = [j['token'] for j in s['jugadores']]
+        ids = [j['id'] for j in s['jugadores']]
+
+        nueva = motor.revancha(s)
+
+        self.assertEqual('espera', nueva['fase'])
+        self.assertEqual(9, nueva['version'])
+        self.assertIsNone(nueva['ganador'])
+        self.assertEqual(ids, [j['id'] for j in nueva['jugadores']])
+        self.assertEqual(tokens, [j['token'] for j in nueva['jugadores']])
+        self.assertTrue(all(not j['mano'] for j in nueva['jugadores']))
+        with self.assertRaises(ValueError): motor.revancha(nueva)
+
     def test_turno_invalido_no_muta_estado(self):
         s = self.partida()
         antes = copy.deepcopy(s)

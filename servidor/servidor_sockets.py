@@ -101,6 +101,12 @@ class Servidor:
             )
             return dict(estado=estado)
 
+        if tipo == 'revancha':
+            estado = await asyncio.to_thread(
+                servicio.revancha, c.codigo, 'Bearer ' + c.token
+            )
+            return dict(estado=estado)
+
         if tipo == 'cancelar':
             estado = await asyncio.to_thread(
                 servicio.cancelar, c.codigo, 'Bearer ' + c.token

@@ -20,6 +20,16 @@ def jugador(nombre, jugador_id):
     return dict(nombre=nombre, id=jugador_id, token=secrets.token_urlsafe(32), mano=[])
 
 
+def revancha(s):
+    if s['fase'] != 'terminada':
+        raise ValueError('Solo puedes iniciar otra partida cuando termine la actual')
+    return dict(jugadores=[dict(nombre=j['nombre'], id=j['id'], token=j['token'], mano=[])
+                           for j in s['jugadores']],
+                fase='espera', version=s['version'] + 1, turno=0, direccion=1,
+                mazo=[], descarte=[], color='Ninguno', ganador=None, uno=None,
+                mensaje='Nueva partida. Esperando al creador', eventos=[], solicitudes=[])
+
+
 def evento(s, indice, accion, c=None):
     s['eventos'].append(dict(jugador=s['jugadores'][indice]['id'], accion=accion,
                              color=c['Color'] if c else None,

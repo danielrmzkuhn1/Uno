@@ -126,6 +126,15 @@ namespace UNO
             };
             return (JObject)(await Enviar(mensaje))["estado"];
         }
+
+        public async Task<JObject> Revancha()
+        {
+            return (JObject)(await Enviar(new JObject
+            {
+                ["tipo"] = "revancha"
+            }))["estado"];
+        }
+
         public async Task<JObject> Cancelar()
         {
             return (JObject)(await Enviar(new JObject

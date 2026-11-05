@@ -58,6 +58,21 @@ class ApiTests(unittest.TestCase):
         version = api.consultar(self.codigo, self.token)['version']
         return api.Accion(accion=accion, version=version, solicitud=solicitud, **kw)
 
+    def terminar_partida(self):
+        api.actuar(self.codigo, self.accion('iniciar'), self.token)
+        fila = self.db.execute('SELECT id_partida, estado FROM salas_wifi WHERE codigo=?',
+                               (self.codigo,)).fetchone()
+        s = json.loads(fila['estado'])
+        s['fase'] = 'terminada'
+        s['ganador'] = 0
+        s['version'] += 1
+        self.db.execute('UPDATE partidas SET id_ganador=? WHERE id_partida=?',
+                        (s['jugadores'][0]['id'], fila['id_partida']))
+        self.db.execute('UPDATE salas_wifi SET estado=? WHERE codigo=?',
+                        (json.dumps(s), self.codigo))
+        self.db.commit()
+        return fila['id_partida'], s
+
     def test_sesion_requerida(self):
         with self.assertRaises(ErrorServicio) as ex: api.consultar(self.codigo, None)
         self.assertEqual(401, ex.exception.status_code)
@@ -98,6 +113,39 @@ class ApiTests(unittest.TestCase):
                                              (otra['estado']['codigo'],)).fetchone()[0])
         self.assertEqual(primera['jugadores'][0]['id'], segunda['jugadores'][0]['id'])
         self.assertEqual(2, self.db.execute('SELECT COUNT(*) FROM jugadores').fetchone()[0])
+
+    def test_revancha_crea_partida_nueva_y_conserva_sesiones(self):
+        partida_anterior, estado_anterior = self.terminar_partida()
+        resultado = api.revancha(self.codigo, self.token)
+        fila = self.db.execute('SELECT id_partida, estado FROM salas_wifi WHERE codigo=?',
+                               (self.codigo,)).fetchone()
+        nuevo = json.loads(fila['estado'])
+        self.assertNotEqual(partida_anterior, fila['id_partida'])
+        self.assertEqual('espera', resultado['fase'])
+        self.assertEqual(self.codigo, resultado['codigo'])
+        self.assertEqual(estado_anterior['version'] + 1, resultado['version'])
+        self.assertEqual([j['token'] for j in estado_anterior['jugadores']],
+                         [j['token'] for j in nuevo['jugadores']])
+        self.assertTrue(all(not j['mano'] for j in nuevo['jugadores']))
+        self.assertEqual(estado_anterior['jugadores'][0]['id'],
+                         self.db.execute('SELECT id_ganador FROM partidas WHERE id_partida=?',
+                                         (partida_anterior,)).fetchone()[0])
+        self.assertEqual(0, self.db.execute('SELECT COUNT(*) FROM partida_jugadores WHERE id_partida=?',
+                                            (fila['id_partida'],)).fetchone()[0])
+
+        iniciar = api.Accion(accion='iniciar', version=resultado['version'], solicitud='revancha')
+        api.actuar(self.codigo, iniciar, self.token)
+        self.assertEqual(2, self.db.execute('SELECT COUNT(*) FROM partida_jugadores WHERE id_partida=?',
+                                            (fila['id_partida'],)).fetchone()[0])
+
+    def test_revancha_solo_esta_disponible_para_creador_al_finalizar(self):
+        with self.assertRaises(ErrorServicio) as ex:
+            api.revancha(self.codigo, 'Bearer ' + self.b['token'])
+        self.assertEqual(403, ex.exception.status_code)
+        with self.assertRaises(ErrorServicio) as ex:
+            api.revancha(self.codigo, self.token)
+        self.assertEqual(409, ex.exception.status_code)
+        self.assertEqual(1, self.db.execute('SELECT COUNT(*) FROM partidas').fetchone()[0])
 
     def test_expiracion_se_guarda_aun_con_version_vieja(self):
         api.actuar(self.codigo, self.accion('iniciar'), self.token)

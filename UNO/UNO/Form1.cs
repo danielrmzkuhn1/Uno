@@ -24,6 +24,7 @@ namespace UNO
         private readonly Button crear = new Button { Text = "Crear sala", Width = 170, Height = 36 };
         private readonly Button entrar = new Button { Text = "Unirse a sala", Width = 170, Height = 36 };
         private readonly Button iniciar = new Button { Text = "Iniciar partida", Width = 350, Height = 40 };
+        private readonly Button btnRevancha = new Button { Text = "Nueva partida", Width = 210, Height = 40 };
 
         private readonly Button btnCancelar = new Button
         {
@@ -87,6 +88,7 @@ namespace UNO
             crear.Click += async (s, e) => await Conectar(true);
             entrar.Click += async (s, e) => await Conectar(false);
             iniciar.Click += async (s, e) => await Accion("iniciar");
+            btnRevancha.Click += async (s, e) => await NuevaPartida();
             btnSalir.Click += async (s, e) => await SalirSala();
             btnCancelar.Click += async (s, e) => await CancelarSala();
             Controls.Add(lblAviso);
@@ -100,9 +102,11 @@ namespace UNO
             btnUno.Click += async (s, e) => await Accion("uno");
             Controls.Add(btnUno);
             btnUno.Visible = false;
+            Controls.Add(btnRevancha);
+            btnRevancha.Visible = false;
             flpMano.Anchor = AnchorStyles.Left | AnchorStyles.Top;
             controlesJuego = new Control[] { lblTurno, lblSentido, lblMazo, lblCartaSuperior,
-                lblColorActivo, lblAviso, lstJugadores, flpMano, btnRobar };
+                lblColorActivo, lblAviso, lstJugadores, flpMano, btnRobar, btnRevancha };
             foreach (var control in controlesJuego) control.Visible = false;
             Resize += (s, e) => PosicionarJuego();
             PosicionarJuego();
@@ -124,6 +128,7 @@ namespace UNO
             lblCartaSuperior.Size = new Size(130, 188);
             btnRobar.Location = new Point(ancho / 2 + 100, 180);
             btnUno.Location = new Point(ancho / 2 + 100, 240);
+            btnRevancha.Location = new Point(ancho / 2 + 100, 300);
             lblAviso.Location = new Point(20, alto - 260);
             lblAviso.Size = new Size(ancho - 40, 65);
             flpMano.Location = new Point(0, alto - 185);
@@ -237,7 +242,7 @@ namespace UNO
             crear.Visible = entrar.Visible = true;
             crear.Enabled = entrar.Enabled = true;
 
-            iniciar.Visible = btnCancelar.Visible = btnSalir.Visible = false;
+            iniciar.Visible = btnCancelar.Visible = btnSalir.Visible = btnRevancha.Visible = false;
 
             espera.Text = "";
             conexion.Text = "";
@@ -283,6 +288,43 @@ namespace UNO
             {
                 ocupado = false;
                 if (!cerrado && estado != null)
+                    Dibujar();
+            }
+        }
+
+        private async Task NuevaPartida()
+        {
+            if (ocupado || estado == null || !conectado
+                || (string)estado["fase"] != "terminada" || (int)estado["yo"] != 0)
+                return;
+
+            var confirmar = MessageBox.Show(
+                this,
+                "Todos volverán a la sala actual. ¿Quieres preparar otra partida?",
+                "Nueva partida",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+            if (confirmar != DialogResult.Yes)
+                return;
+
+            ocupado = true;
+            btnRevancha.Enabled = false;
+            try
+            {
+                var recibido = await api.Revancha();
+                if (!cerrado)
+                    AplicarEstado(recibido);
+            }
+            catch (Exception ex)
+            {
+                if (!cerrado)
+                    MessageBox.Show(this, ex.Message, "No se pudo preparar la partida");
+            }
+            finally
+            {
+                ocupado = false;
+                if (!cerrado)
                     Dibujar();
             }
         }
@@ -338,6 +380,8 @@ namespace UNO
                 control.Visible = fase == "jugando" || fase == "terminada";
 
             btnUno.Visible = false;
+            btnRevancha.Visible = fase == "terminada" && yo == 0;
+            btnRevancha.Enabled = conectado && !ocupado;
 
             iniciar.Visible = esperando && yo == 0;
             iniciar.Enabled = conectado && !ocupado && jugadores.Count >= 2;
@@ -375,7 +419,10 @@ namespace UNO
             lblMazo.Text = "Cartas en mazo: " + (int)estado["mazo"];
             lblColorActivo.Text = "Color activo: " + (string)estado["color"];
             lblColorActivo.BackColor = ColorUI((ColorCarta)Enum.Parse(typeof(ColorCarta), (string)estado["color"]));
-            lblAviso.Text = (string)estado["mensaje"] + (pendiente >= 0 ? " · Esperando ¡UNO! de " + (string)jugadores[pendiente]["nombre"] : "") + "\n" + conexion.Text;
+            string avisoRevancha = fase == "terminada" && yo != 0
+                ? "\nEsperando a que el creador decida si habrá otra partida."
+                : "";
+            lblAviso.Text = (string)estado["mensaje"] + (pendiente >= 0 ? " · Esperando ¡UNO! de " + (string)jugadores[pendiente]["nombre"] : "") + avisoRevancha + "\n" + conexion.Text;
             btnRobar.Enabled = conectado && miTurno && !ocupado;
             btnUno.Visible = pendiente == yo;
             btnUno.Enabled = conectado && !ocupado;

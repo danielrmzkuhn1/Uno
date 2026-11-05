@@ -176,6 +176,25 @@ def actuar(codigo: str, datos: Accion, authorization: Optional[str] = None):
     return motor.vista(s, i, fila['codigo'])
 
 
+def revancha(codigo: str, authorization: Optional[str] = None):
+    with transaccion() as cur:
+        fila, s = cargar(cur, codigo)
+        i = autenticar(s, authorization)
+        if i != 0:
+            raise ErrorServicio(403, 'Solo el creador puede iniciar otra partida')
+        try:
+            nueva = motor.revancha(s)
+        except ValueError as e:
+            raise ErrorServicio(409, str(e))
+
+        cur.execute('INSERT INTO partidas(id_ganador) VALUES (NULL)')
+        id_partida = cur.lastrowid
+        cur.execute('UPDATE salas_wifi SET id_partida=%s, estado=%s WHERE codigo=%s',
+                    (id_partida, json.dumps(nueva), fila['codigo']))
+
+    return motor.vista(nueva, i, fila['codigo'])
+
+
 def cancelar(codigo: str, authorization: Optional[str] = None):
     with transaccion() as cur:
         fila, s = cargar(cur, codigo)

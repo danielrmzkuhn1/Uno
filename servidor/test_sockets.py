@@ -114,6 +114,31 @@ class SocketsTests(unittest.IsolatedAsyncioTestCase):
         datos['solicitud'] = 'otro'
         self.assertFalse((await self.pedir(a, 'accion', datos=datos))['ok'])
 
+    async def test_creador_inicia_revancha_y_se_publica_a_la_sala(self):
+        a, b, codigo, estado, _ = await self.iniciar()
+        fila = self.fixture.db.execute('SELECT id_partida, estado FROM salas_wifi WHERE codigo=?',
+                                       (codigo,)).fetchone()
+        s = json.loads(fila['estado'])
+        s['fase'] = 'terminada'
+        s['ganador'] = 0
+        s['version'] += 1
+        self.fixture.db.execute('UPDATE partidas SET id_ganador=? WHERE id_partida=?',
+                                (s['jugadores'][0]['id'], fila['id_partida']))
+        self.fixture.db.execute('UPDATE salas_wifi SET estado=? WHERE codigo=?',
+                                (json.dumps(s), codigo))
+        self.fixture.db.commit()
+
+        respuesta = await self.pedir(a, 'revancha')
+        self.assertTrue(respuesta['ok'])
+        self.assertEqual('espera', respuesta['estado']['fase'])
+        self.assertEqual(codigo, respuesta['estado']['codigo'])
+        estado_nuevo = await self.leer(b, lambda m: m.get('tipo') == 'estado'
+                                      and m['estado']['fase'] == 'espera')
+        self.assertEqual(codigo, estado_nuevo['estado']['codigo'])
+        nueva_partida = self.fixture.db.execute('SELECT id_partida FROM salas_wifi WHERE codigo=?',
+                                                (codigo,)).fetchone()['id_partida']
+        self.assertNotEqual(fila['id_partida'], nueva_partida)
+
     async def test_json_invalido_no_rompe_servidor(self):
         c = await self.conectar()
         c[1].write(b'basura\n')
