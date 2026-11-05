@@ -82,6 +82,7 @@ namespace UNO
             centrar();
             iniciar.Visible = false;
             btnCancelar.Visible = false;
+            btnSalir.Visible = false;
 
             crear.Click += async (s, e) => await Conectar(true);
             entrar.Click += async (s, e) => await Conectar(false);
