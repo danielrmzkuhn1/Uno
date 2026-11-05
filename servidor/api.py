@@ -59,8 +59,11 @@ def nombre_valido(datos):
     return nombre
 
 
-def crear_jugador(cur, nombre):
-    # Cada entrada representa una sesión distinta, aunque existan nombres históricos iguales.
+def obtener_jugador(cur, nombre):
+    cur.execute('SELECT id_jugador, nombre FROM jugadores ORDER BY id_jugador')
+    for jugador in cur.fetchall():
+        if jugador['nombre'].casefold() == nombre.casefold():
+            return jugador['id_jugador']
     cur.execute('INSERT INTO jugadores(nombre) VALUES (%s)', (nombre,))
     return cur.lastrowid
 
@@ -111,7 +114,7 @@ def crear(datos: Nombre):
     nombre = nombre_valido(datos)
     with transaccion() as cur:
         codigo = secrets.token_hex(4).upper()
-        s = motor.nueva(nombre, crear_jugador(cur, nombre))
+        s = motor.nueva(nombre, obtener_jugador(cur, nombre))
         cur.execute('INSERT INTO partidas(id_ganador) VALUES (NULL)')
         partida = cur.lastrowid
         cur.execute('INSERT INTO salas_wifi(codigo,id_partida,estado) VALUES (%s,%s,%s)',
@@ -124,9 +127,11 @@ def entrar(codigo: str, datos: Nombre):
     with transaccion() as cur:
         fila, s = cargar(cur, codigo)
         try:
-            i = motor.entrar(s, nombre, crear_jugador(cur, nombre))
+            motor.validar_entrada(s, nombre)
         except ValueError as e:
             raise ErrorServicio(409, str(e))
+        jugador_id = obtener_jugador(cur, nombre)
+        i = motor.entrar(s, nombre, jugador_id)
         guardar(cur, fila, s)
     return dict(token=s['jugadores'][i]['token'], estado=motor.vista(s, i, fila['codigo']))
 
