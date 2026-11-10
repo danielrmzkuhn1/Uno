@@ -74,6 +74,8 @@ class Servidor:
         tipo = m.get('tipo')
         if tipo == 'salud':
             return await asyncio.to_thread(servicio.salud)
+        if tipo == 'estadisticas':
+            return await asyncio.to_thread(servicio.estadisticas)
         if tipo in ('crear', 'entrar', 'reanudar'):
             if c.codigo:
                 raise ValueError('Ya estás en una sala')
