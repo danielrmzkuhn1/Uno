@@ -44,6 +44,13 @@ namespace UNO
         private readonly Label espera = new Label { AutoSize = true, MaximumSize = new Size(370, 0) };
         private readonly Label conexion = new Label { AutoSize = true, ForeColor = Color.DarkRed, MaximumSize = new Size(370, 0) };
         private readonly Dictionary<string, Image> cacheCartas = new Dictionary<string, Image>();
+        // La mano propia sigue en flpMano. Los demás jugadores solo muestran dorsos.
+        private readonly Panel[] panelRivales = { new Panel(), new Panel(), new Panel() };
+        // Se obtiene de Resources.resx, igual que Comodin y las cartas numeradas.
+        // Si todavía no se ha agregado al proyecto, se utiliza un reverso provisional.
+        private readonly Image reversoCarta =
+            UNO.Properties.Resources.ResourceManager.GetObject("Reverso") as Image
+            ?? CrearReversoCarta();
 
         public Form1()
         {
@@ -108,9 +115,22 @@ namespace UNO
             controlesJuego = new Control[] { lblTurno, lblSentido, lblMazo, lblCartaSuperior,
                 lblColorActivo, lblAviso, lstJugadores, flpMano, btnRobar, btnRevancha };
             foreach (var control in controlesJuego) control.Visible = false;
+            foreach (var panel in panelRivales)
+            {
+                panel.BackColor = Color.Transparent;
+                panel.Visible = false;
+                panel.Paint += PintarManoRival;
+                Controls.Add(panel);
+                panel.BringToFront();
+            }
             Resize += (s, e) => PosicionarJuego();
             PosicionarJuego();
-            FormClosed += (s, e) => { cerrado = true; if (api != null) api.Dispose(); };
+            FormClosed += (s, e) =>
+            {
+                cerrado = true;
+                if (api != null) api.Dispose();
+                reversoCarta.Dispose();
+            };
             pnlMenu.BringToFront();
         }
 
@@ -133,6 +153,11 @@ namespace UNO
             lblAviso.Size = new Size(ancho - 40, 65);
             flpMano.Location = new Point(0, alto - 185);
             flpMano.Size = new Size(ancho, 185);
+
+            // Izquierda, enfrente y derecha: se ajustan al tamaño de la ventana.
+            panelRivales[0].SetBounds(12, 180, 140, Math.Min(295, alto - 445));
+            panelRivales[1].SetBounds((ancho - 390) / 2, 2, 390, 115);
+            panelRivales[2].SetBounds(ancho - 152, 180, 140, Math.Min(295, alto - 445));
         }
 
         private async Task Conectar(bool nueva)
@@ -250,6 +275,11 @@ namespace UNO
 
             foreach (var control in controlesJuego)
                 control.Visible = false;
+            foreach (var panel in panelRivales)
+            {
+                panel.Visible = false;
+                panel.Tag = null;
+            }
 
             Text = "UNO · Sockets TCP";
             pnlMenu.BringToFront();
@@ -378,6 +408,8 @@ namespace UNO
 
             foreach (var control in controlesJuego)
                 control.Visible = fase == "jugando" || fase == "terminada";
+            foreach (var panel in panelRivales)
+                panel.Visible = (fase == "jugando" || fase == "terminada") && panel.Tag != null;
 
             btnUno.Visible = false;
             btnRevancha.Visible = fase == "terminada" && yo == 0;
@@ -431,6 +463,7 @@ namespace UNO
             int version = (int)estado["version"];
             if (versionDibujada == version) return;
             versionDibujada = version;
+            ActualizarManosRivales(jugadores, yo);
             lstJugadores.Items.Clear();
             foreach (var j in jugadores)
                 lstJugadores.Items.Add((string)j["nombre"] + " (" + (int)j["cantidad"] + " cartas)");
@@ -457,6 +490,90 @@ namespace UNO
                 };
                 flpMano.Controls.Add(b);
             }
+        }
+
+        // Sitúa a los rivales alrededor de la mesa tomando al usuario como referencia.
+        private void ActualizarManosRivales(JArray jugadores, int yo)
+        {
+            foreach (var panel in panelRivales)
+            {
+                panel.Tag = null;
+                panel.Visible = false;
+            }
+
+            // Dos jugadores: rival enfrente. Tres: izquierda/derecha.
+            // Cuatro: izquierda/enfrente/derecha.
+            int[] ubicaciones = jugadores.Count == 2 ? new[] { 1 }
+                : jugadores.Count == 3 ? new[] { 0, 2 }
+                : new[] { 0, 1, 2 };
+
+            for (int salto = 1; salto < jugadores.Count && salto <= 3; salto++)
+            {
+                int indiceRival = (yo + salto) % jugadores.Count;
+                Panel panel = panelRivales[ubicaciones[salto - 1]];
+                panel.Tag = indiceRival;
+                panel.Visible = true;
+                panel.Invalidate();
+            }
+        }
+
+        private void PintarManoRival(object sender, PaintEventArgs e)
+        {
+            Panel panel = (Panel)sender;
+            if (estado == null || !(panel.Tag is int)) return;
+
+            int indiceRival = (int)panel.Tag;
+            var jugadores = (JArray)estado["jugadores"];
+            if (indiceRival < 0 || indiceRival >= jugadores.Count) return;
+
+            string nombreRival = (string)jugadores[indiceRival]["nombre"];
+            int cantidad = (int)jugadores[indiceRival]["cantidad"];
+            int posicion = Array.IndexOf(panelRivales, panel);
+            bool horizontal = posicion == 1;
+            int visibles = Math.Min(cantidad, 16);
+
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var letra = new Font("Segoe UI", 10, FontStyle.Bold))
+            using (var formato = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                Trimming = StringTrimming.EllipsisCharacter
+            })
+            {
+                e.Graphics.DrawString(nombreRival + " (" + cantidad + " cartas)",
+                    letra, Brushes.White, new RectangleF(0, 0, panel.Width, 23), formato);
+            }
+
+            int espacio = horizontal ? panel.Width - 20 - 52 : panel.Height - 28 - 82;
+            int paso = visibles > 1
+                ? Math.Min(horizontal ? 24 : 17, Math.Max(0, espacio / (visibles - 1)))
+                : 0;
+
+            for (int i = 0; i < visibles; i++)
+            {
+                int x = horizontal ? 10 + i * paso : (panel.Width - 52) / 2;
+                int y = horizontal ? 26 : 28 + i * paso;
+                e.Graphics.DrawImage(reversoCarta, new Rectangle(x, y, 52, 82));
+            }
+        }
+
+        // Respaldo visual por si Reverso.png no está aún en los recursos compilados.
+        private static Bitmap CrearReversoCarta()
+        {
+            var imagen = new Bitmap(58, 82);
+            using (var g = Graphics.FromImage(imagen))
+            using (var fondo = new SolidBrush(Color.FromArgb(24, 25, 35)))
+            using (var ovalo = new SolidBrush(Color.FromArgb(205, 35, 45)))
+            using (var letra = new Font("Segoe UI", 13, FontStyle.Bold))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+                g.FillRectangle(fondo, 4, 4, 50, 74);
+                g.DrawRectangle(Pens.White, 5, 5, 47, 71);
+                g.FillEllipse(ovalo, 8, 22, 43, 38);
+                g.DrawString("UNO", letra, Brushes.Gold, 7, 31);
+            }
+            return imagen;
         }
 
         private static Carta Convertir(JToken c)
