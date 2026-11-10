@@ -115,6 +115,24 @@ def salud():
         cur.fetchall()
     return {'mensaje': 'API y MySQL disponibles'}
 
+def estadisticas():
+    with transaccion() as cur:
+        cur.execute("""
+            SELECT
+                j.nombre,
+                COUNT(*) AS victorias
+            FROM partidas p
+            JOIN jugadores j
+                ON j.id_jugador = p.id_ganador
+            WHERE p.id_ganador IS NOT NULL
+            GROUP BY j.nombre
+            ORDER BY victorias DESC, j.nombre ASC
+        """)
+
+        resultados = cur.fetchall()
+
+    return {'estadisticas': resultados}
+
 
 def crear(datos: Nombre):
     nombre = nombre_valido(datos)

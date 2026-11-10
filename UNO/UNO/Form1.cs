@@ -52,6 +52,36 @@ namespace UNO
             UNO.Properties.Resources.ResourceManager.GetObject("Reverso") as Image
             ?? CrearReversoCarta();
 
+        private readonly Button btnEstadisticas = new Button
+        {
+            Text = "Estadísticas",
+            Width = 350,
+            Height = 36
+        };
+
+        private readonly Label tituloEstadisticas = new Label
+        {
+            Text = "RANKING DE VICTORIAS",
+            AutoSize = true,
+            Font = new Font("Segoe UI", 15, FontStyle.Bold)
+        };
+
+        private readonly ListBox listaEstadisticas = new ListBox
+        {
+            Width = 350,
+            Height = 250
+        };
+
+        private readonly Button btnCerrarEstadisticas = new Button
+        {
+            Text = "Volver al menú",
+            Width = 350,
+            Height = 36
+        };
+
+        private Control[] controlesMenu;
+        private Dictionary<Control, bool> visibilidadMenuAntes;
+
         public Form1()
         {
             InitializeComponent();
@@ -84,6 +114,17 @@ namespace UNO
             menu.Controls.Add(btnSalir);
             menu.Controls.Add(espera);
             menu.Controls.Add(conexion);
+            menu.Controls.Add(btnEstadisticas);
+
+            controlesMenu = menu.Controls.Cast<Control>().ToArray();
+
+            menu.Controls.Add(tituloEstadisticas);
+            menu.Controls.Add(listaEstadisticas);
+            menu.Controls.Add(btnCerrarEstadisticas);
+
+            tituloEstadisticas.Visible = false;
+            listaEstadisticas.Visible = false;
+            btnCerrarEstadisticas.Visible = false;
             pnlMenu.Controls.Add(menu);
             Action centrar = () => menu.Location = new Point(Math.Max(0, (pnlMenu.Width - menu.Width) / 2), Math.Max(0, (pnlMenu.Height - menu.Height) / 2));
             pnlMenu.Resize += (s, e) => centrar();
@@ -98,6 +139,9 @@ namespace UNO
             btnRevancha.Click += async (s, e) => await NuevaPartida();
             btnSalir.Click += async (s, e) => await SalirSala();
             btnCancelar.Click += async (s, e) => await CancelarSala();
+            btnEstadisticas.Click += async (s, e) =>await AbrirEstadisticas();
+
+            btnCerrarEstadisticas.Click += (s, e) =>CerrarEstadisticas();
             Controls.Add(lblAviso);
             lblAviso.Location = new Point(20, 400);
             lblAviso.AutoSize = false;
@@ -681,6 +725,77 @@ namespace UNO
             {
                 ctrl.Text = Texto(carta);
                 ctrl.BackColor = ColorUI(carta.Color);
+            }
+        }
+
+        private async Task AbrirEstadisticas()
+        {
+            if (ocupado || api != null || estado != null)
+                return;
+
+            visibilidadMenuAntes = controlesMenu.ToDictionary(
+                c => c, c => c.Visible
+            );
+
+            foreach (Control c in controlesMenu)
+                c.Visible = false;
+
+            tituloEstadisticas.Visible = true;
+            listaEstadisticas.Visible = true;
+            btnCerrarEstadisticas.Visible = true;
+
+            listaEstadisticas.Items.Clear();
+            listaEstadisticas.Items.Add("Cargando estadísticas...");
+
+            try
+            {
+                using (var consulta = new ApiService(servidor.Text))
+                {
+                    JArray resultados = await consulta.Estadisticas();
+
+                    listaEstadisticas.Items.Clear();
+
+                    if (resultados.Count == 0)
+                    {
+                        listaEstadisticas.Items.Add(
+                            "Todavía no hay partidas ganadas."
+                        );
+                    }
+                    else
+                    {
+                        for (int i = 0; i < resultados.Count; i++)
+                        {
+                            string jugador = (string)resultados[i]["nombre"];
+                            int victorias = (int)resultados[i]["victorias"];
+
+                            listaEstadisticas.Items.Add(
+                                $"{i + 1}. {jugador} - {victorias} victorias"
+                            );
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                listaEstadisticas.Items.Clear();
+                listaEstadisticas.Items.Add(
+                    "Error al consultar: " + ex.Message
+                );
+            }
+        }
+
+        private void CerrarEstadisticas()
+        {
+            tituloEstadisticas.Visible = false;
+            listaEstadisticas.Visible = false;
+            btnCerrarEstadisticas.Visible = false;
+
+            if (visibilidadMenuAntes != null)
+            {
+                foreach (var elemento in visibilidadMenuAntes)
+                    elemento.Key.Visible = elemento.Value;
+
+                visibilidadMenuAntes = null;
             }
         }
 

@@ -37,15 +37,7 @@ namespace UNO
 
         public async Task<JObject> Entrar(string nombre, string sala, bool crear)
         {
-            var conectar = cliente.ConnectAsync(host, puerto);
-            if (await Task.WhenAny(conectar, Task.Delay(8000)) != conectar)
-            { Dispose(); throw new TimeoutException("El servidor no respondió"); }
-            await conectar;
-            cliente.NoDelay = true;
-            var red = cliente.GetStream();
-            lector = new StreamReader(red, new UTF8Encoding(false, true), false, 4096, true);
-            escritor = new StreamWriter(red, new UTF8Encoding(false), 4096, true) { AutoFlush = true, NewLine = "\n" };
-            var lectura = Task.Run(Leer);
+            await AbrirConexion();
             var respuesta = await Enviar(new JObject
             {
                 ["tipo"] = crear ? "crear" : "entrar",
@@ -82,6 +74,51 @@ namespace UNO
                 }
             }
             catch (Exception ex) { Terminar(ex.Message); }
+        }
+
+        private async Task AbrirConexion()
+        {
+            if (lector != null) return;
+
+            var conectar = cliente.ConnectAsync(host, puerto);
+
+            if (await Task.WhenAny(conectar, Task.Delay(8000)) != conectar)
+            {
+                Dispose();
+                throw new TimeoutException("El servidor no respondió");
+            }
+
+            await conectar;
+
+            cliente.NoDelay = true;
+
+            var red = cliente.GetStream();
+
+            lector = new StreamReader(
+                red, new UTF8Encoding(false, true), false, 4096, true
+            );
+
+            escritor = new StreamWriter(
+                red, new UTF8Encoding(false), 4096, true
+            )
+            {
+                AutoFlush = true,
+                NewLine = "\n"
+            };
+
+            _ = Task.Run(Leer);
+        }
+
+        public async Task<JArray> Estadisticas()
+        {
+            await AbrirConexion();
+
+            var respuesta = await Enviar(new JObject
+            {
+                ["tipo"] = "estadisticas"
+            });
+
+            return (JArray)respuesta["estadisticas"];
         }
 
         private async Task<JObject> Enviar(JObject mensaje)
